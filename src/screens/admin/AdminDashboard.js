@@ -264,6 +264,30 @@ const AdminDashboard = ({ navigation }) => {
               <Text style={styles.roleText}>Reports Administrator - Analytics Access Only</Text>
             </View>
           )}
+
+          {/* Content Status Section */}
+          {adminRole === 'lgu_admin' && (
+            <View style={styles.contentStatusContainer}>
+              <Text style={styles.statusTitle}>📱 User App Content Status</Text>
+              <Text style={styles.statusSubtitle}>
+                Content added/updated here will be visible to users in the mobile app
+              </Text>
+              
+              <View style={styles.statusGrid}>
+                <View style={styles.statusCard}>
+                  <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+                  <Text style={styles.statusLabel}>Live Content</Text>
+                  <Text style={styles.statusValue}>{stats.attractions + stats.restaurants + stats.beaches + stats.destinations} items</Text>
+                </View>
+                
+                <View style={styles.statusCard}>
+                  <Ionicons name="sync" size={24} color={colors.primary} />
+                  <Text style={styles.statusLabel}>Auto Sync</Text>
+                  <Text style={styles.statusValue}>Real-time</Text>
+                </View>
+              </View>
+            </View>
+          )}
           
           <View style={styles.managementGrid}>
             {getManagementItems().map((item) => (
@@ -462,6 +486,56 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     color: colors.text,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  contentStatusContainer: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 15,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  statusTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  statusSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 16,
+  },
+  statusGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minWidth: '100%',
+  },
+  statusCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  statusLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+  },
+  statusValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: colors.primary,
+    marginTop: 4,
   },
 });
 

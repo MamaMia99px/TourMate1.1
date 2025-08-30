@@ -18,6 +18,7 @@ import RestaurantCard from '../../components/restaurant/RestaurantCard';
 import favoritesService from '../../services/api/favoritesService';
 import reviewsService from '../../services/api/reviewsService';
 import RestaurantsDataService from '../../services/data/RestaurantsDataService';
+import FirebaseDataService from '../../services/data/FirebaseDataService';
 import LocationService from '../../services/location/LocationService';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
@@ -109,16 +110,33 @@ const AttractionDetails = ({ route, navigation }) => {
     }
   };
 
-  const loadNearbyRestaurants = () => {
+  const loadNearbyRestaurants = async () => {
     try {
       // Get restaurants based on the attraction's location
       console.log(`Loading restaurants for attraction: ${attraction.name} at ${attraction.location}`);
-      const restaurants = RestaurantsDataService.getNearByRestaurants(attraction.name, 5);
-      setNearbyRestaurants(restaurants);
-      console.log(`Found ${restaurants.length} nearby restaurants for ${attraction.name}:`, restaurants.map(r => r.name));
+      
+      // Try Firebase first, then fallback to static data
+      const firebaseResult = await FirebaseDataService.getNearbyRestaurants(attraction.location, 5);
+      
+      if (firebaseResult.success && firebaseResult.data.length > 0) {
+        setNearbyRestaurants(firebaseResult.data);
+        console.log(`Found ${firebaseResult.data.length} nearby restaurants from Firebase for ${attraction.name}:`, firebaseResult.data.map(r => r.name));
+      } else {
+        // Fallback to static data
+        const restaurants = RestaurantsDataService.getNearByRestaurants(attraction.name, 5);
+        setNearbyRestaurants(restaurants);
+        console.log(`Found ${restaurants.length} nearby restaurants from static data for ${attraction.name}:`, restaurants.map(r => r.name));
+      }
     } catch (error) {
       console.error('Error loading nearby restaurants:', error);
-      setNearbyRestaurants([]);
+      // Fallback to static data on error
+      try {
+        const restaurants = RestaurantsDataService.getNearByRestaurants(attraction.name, 5);
+        setNearbyRestaurants(restaurants);
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        setNearbyRestaurants([]);
+      }
     }
   };
 

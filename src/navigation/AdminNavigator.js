@@ -14,6 +14,7 @@ import AddBeachScreen from '../screens/admin/AddBeachScreen';
 import AddDestinationScreen from '../screens/admin/AddDestinationScreen';
 import ManageContentScreen from '../screens/admin/ManageContentScreen';
 import ViewReportsScreen from '../screens/admin/ViewReportsScreen';
+import ImageTestScreen from '../screens/admin/ImageTestScreen';
 
 const Stack = createStackNavigator();
 
@@ -98,7 +99,12 @@ const AdminNavigator = () => {
       <Stack.Screen
         name="ViewReports"
         component={ViewReportsScreen}
-        options={{ headerShown: false }}
+        options={getHeaderOptions('View Reports')}
+      />
+      <Stack.Screen
+        name="ImageTest"
+        component={ImageTestScreen}
+        options={getHeaderOptions('Image Upload Test')}
       />
     </Stack.Navigator>
   );

@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Modal,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -26,6 +28,17 @@ const ManageContentScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    location: '',
+    description: '',
+    rating: '',
+    priceRange: '',
+    openHours: '',
+    specialties: '',
+  });
   
   const categories = [
     { key: 'attractions', label: 'Attractions', icon: '🏛️' },
@@ -63,39 +76,87 @@ const ManageContentScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const handleDelete = (item) => {
-    Alert.alert(
-      'Delete Content',
-      `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await AdminDataService.deleteContent(
-                AdminDataService.COLLECTIONS[selectedCategory.toUpperCase()],
-                item.id
-              );
-              if (result.success) {
-                Alert.alert('Success', result.message);
-                loadContent(); // Refresh the list
-              } else {
-                Alert.alert('Error', result.error);
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete content');
-            }
-          }
-        }
-      ]
-    );
+  const handleDelete = async (item) => {
+    try {
+      const result = await AdminDataService.deleteContent(
+        AdminDataService.COLLECTIONS[selectedCategory.toUpperCase()],
+        item.id
+      );
+      if (result.success) {
+        // Show success message briefly
+        Alert.alert('Success', `${item.name} has been deleted successfully.`);
+        loadContent(); // Refresh the list
+      } else {
+        Alert.alert('Error', result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      Alert.alert('Error', 'Failed to delete content. Please try again.');
+    }
   };
 
   const handleEdit = (item) => {
-    // Navigate to edit screen (you can implement this later)
-    Alert.alert('Edit Feature', 'Edit functionality will be available in the next update');
+    setEditingItem(item);
+    setEditForm({
+      name: item.name || '',
+      location: item.location || '',
+      description: item.description || '',
+      rating: item.rating ? item.rating.toString() : '',
+      priceRange: item.priceRange || '',
+      openHours: item.openHours || '',
+      specialties: item.specialties ? item.specialties.join(', ') : '',
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editForm.name.trim() || !editForm.location.trim() || !editForm.description.trim()) {
+      Alert.alert('Error', 'Please fill in all required fields (Name, Location, Description)');
+      return;
+    }
+
+    try {
+      const updateData = {
+        name: editForm.name.trim(),
+        location: editForm.location.trim(),
+        description: editForm.description.trim(),
+        rating: editForm.rating ? parseFloat(editForm.rating) : null,
+        priceRange: editForm.priceRange.trim() || null,
+        openHours: editForm.openHours.trim() || null,
+        specialties: editForm.specialties.trim() ? editForm.specialties.split(',').map(s => s.trim()) : null,
+      };
+
+      const result = await AdminDataService.updateContent(
+        AdminDataService.COLLECTIONS[selectedCategory.toUpperCase()],
+        editingItem.id,
+        updateData
+      );
+
+      if (result.success) {
+        Alert.alert('Success', result.message);
+        setEditModalVisible(false);
+        setEditingItem(null);
+        loadContent(); // Refresh the list
+      } else {
+        Alert.alert('Error', result.error);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update content');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditModalVisible(false);
+    setEditingItem(null);
+    setEditForm({
+      name: '',
+      location: '',
+      description: '',
+      rating: '',
+      priceRange: '',
+      openHours: '',
+      specialties: '',
+    });
   };
 
   const filteredContent = content.filter(item => {
@@ -113,6 +174,155 @@ const ManageContentScreen = ({ navigation }) => {
     const d = date.toDate ? date.toDate() : new Date(date);
     return d.toLocaleDateString();
   };
+
+  const renderEditModal = () => (
+    <Modal
+      visible={editModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={handleCancelEdit}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.cardBackground }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Edit {selectedCategory.slice(0, -1)}</Text>
+            <TouchableOpacity onPress={handleCancelEdit}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalBody}>
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Name *</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border
+                }]}
+                value={editForm.name}
+                onChangeText={(text) => setEditForm({...editForm, name: text})}
+                placeholder="Enter name"
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Location *</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border
+                }]}
+                value={editForm.location}
+                onChangeText={(text) => setEditForm({...editForm, location: text})}
+                placeholder="Enter location"
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Description *</Text>
+              <TextInput
+                style={[styles.formTextArea, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border
+                }]}
+                value={editForm.description}
+                onChangeText={(text) => setEditForm({...editForm, description: text})}
+                placeholder="Enter description"
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Rating</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border
+                }]}
+                value={editForm.rating}
+                onChangeText={(text) => setEditForm({...editForm, rating: text})}
+                placeholder="Enter rating (1-5)"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="numeric"
+              />
+            </View>
+
+            {selectedCategory === 'restaurants' && (
+              <>
+                <View style={styles.formGroup}>
+                  <Text style={[styles.formLabel, { color: colors.text }]}>Price Range</Text>
+                  <TextInput
+                    style={[styles.formInput, { 
+                      backgroundColor: colors.background,
+                      color: colors.text,
+                      borderColor: colors.border
+                    }]}
+                    value={editForm.priceRange}
+                    onChangeText={(text) => setEditForm({...editForm, priceRange: text})}
+                    placeholder="e.g., ₱100-250"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={[styles.formLabel, { color: colors.text }]}>Opening Hours</Text>
+                  <TextInput
+                    style={[styles.formInput, { 
+                      backgroundColor: colors.background,
+                      color: colors.text,
+                      borderColor: colors.border
+                    }]}
+                    value={editForm.openHours}
+                    onChangeText={(text) => setEditForm({...editForm, openHours: text})}
+                    placeholder="e.g., 11:00 AM - 9:00 PM"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={[styles.formLabel, { color: colors.text }]}>Specialties</Text>
+                  <TextInput
+                    style={[styles.formInput, { 
+                      backgroundColor: colors.background,
+                      color: colors.text,
+                      borderColor: colors.border
+                    }]}
+                    value={editForm.specialties}
+                    onChangeText={(text) => setEditForm({...editForm, specialties: text})}
+                    placeholder="e.g., Lechon, Crispy Pata, Dinuguan"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                </View>
+              </>
+            )}
+          </ScrollView>
+
+          <View style={styles.modalFooter}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={handleCancelEdit}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.saveButton]}
+              onPress={handleSaveEdit}
+            >
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   const styles = StyleSheet.create({
     container: {
@@ -219,6 +429,12 @@ const ManageContentScreen = ({ navigation }) => {
       color: colors.secondaryText,
       marginBottom: 5,
     },
+    itemImage: {
+      width: '100%',
+      height: 150,
+      borderRadius: 8,
+      marginBottom: 10,
+    },
     itemDescription: {
       fontSize: 14,
       color: colors.text,
@@ -295,7 +511,91 @@ const ManageContentScreen = ({ navigation }) => {
         height: '100vh',
         maxHeight: '100vh',
       }),
-    }
+    },
+    // Modal styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    modalContent: {
+      width: '100%',
+      maxWidth: 500,
+      maxHeight: '80%',
+      borderRadius: 15,
+      padding: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+      paddingBottom: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    modalBody: {
+      flex: 1,
+    },
+    modalFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      paddingTop: 15,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    formGroup: {
+      marginBottom: 15,
+    },
+    formLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 5,
+    },
+    formInput: {
+      borderWidth: 1,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+    },
+    formTextArea: {
+      borderWidth: 1,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    modalButton: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginHorizontal: 5,
+    },
+    cancelButton: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+    },
+    cancelButtonText: {
+      color: colors.text,
+      fontWeight: '600',
+    },
+    saveButtonText: {
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
   });
 
   return (
@@ -383,6 +683,14 @@ const ManageContentScreen = ({ navigation }) => {
                 <Text style={styles.itemName}>{item.name}</Text>
               </View>
               
+              {item.image && (
+                <Image 
+                  source={{ uri: item.image }} 
+                  style={styles.itemImage}
+                  resizeMode="cover"
+                />
+              )}
+              
               <Text style={styles.itemLocation}>{item.location}</Text>
               <Text style={styles.itemDescription} numberOfLines={3}>
                 {item.description}
@@ -413,6 +721,8 @@ const ManageContentScreen = ({ navigation }) => {
           ))}
         </ScrollView>
       )}
+
+      {renderEditModal()}
     </View>
   );
 };

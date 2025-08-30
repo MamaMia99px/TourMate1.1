@@ -11,8 +11,61 @@ class AdminDataService {
     DESTINATIONS: 'destinations'
   };
 
+  // Check if Firebase is available
+  static isFirebaseAvailable() {
+    try {
+      return db && typeof db === 'object';
+    } catch (error) {
+      console.log('Firebase not available:', error.message);
+      return false;
+    }
+  }
+
+  // Get all content from a collection
+  static async getAllContent(collectionName) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available',
+        data: []
+      };
+    }
+
+    try {
+      const querySnapshot = await getDocs(collection(db, collectionName));
+      const content = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        content.push({
+          id: doc.id,
+          ...data
+        });
+      });
+      
+      return {
+        success: true,
+        data: content
+      };
+    } catch (error) {
+      console.error('Error fetching content:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  }
+
   // Add new attraction
   static async addAttraction(attractionData) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available. Cannot add attraction.'
+      };
+    }
+
     try {
       const docRef = await addDoc(collection(db, this.COLLECTIONS.ATTRACTIONS), {
         ...attractionData,
@@ -37,6 +90,13 @@ class AdminDataService {
 
   // Add new restaurant
   static async addRestaurant(restaurantData) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available. Cannot add restaurant.'
+      };
+    }
+
     try {
       const docRef = await addDoc(collection(db, this.COLLECTIONS.RESTAURANTS), {
         ...restaurantData,
@@ -61,6 +121,13 @@ class AdminDataService {
 
   // Add new beach
   static async addBeach(beachData) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available. Cannot add beach.'
+      };
+    }
+
     try {
       const docRef = await addDoc(collection(db, this.COLLECTIONS.BEACHES), {
         ...beachData,
@@ -86,6 +153,13 @@ class AdminDataService {
 
   // Add new destination
   static async addDestination(destinationData) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available. Cannot add destination.'
+      };
+    }
+
     try {
       const docRef = await addDoc(collection(db, this.COLLECTIONS.DESTINATIONS), {
         ...destinationData,
@@ -110,6 +184,13 @@ class AdminDataService {
 
   // Update existing content
   static async updateContent(collection, id, updateData) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available. Cannot update content.'
+      };
+    }
+
     try {
       const docRef = doc(db, collection, id);
       await updateDoc(docRef, {
@@ -132,8 +213,16 @@ class AdminDataService {
 
   // Delete content
   static async deleteContent(collection, id) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available. Cannot delete content.'
+      };
+    }
+
     try {
-      await deleteDoc(doc(db, collection, id));
+      const docRef = doc(db, collection, id);
+      await deleteDoc(docRef);
       
       return {
         success: true,
@@ -148,35 +237,16 @@ class AdminDataService {
     }
   }
 
-  // Get all content from a collection
-  static async getAllContent(collectionName) {
-    try {
-      const querySnapshot = await getDocs(collection(db, collectionName));
-      const content = [];
-      
-      querySnapshot.forEach((doc) => {
-        content.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return {
-        success: true,
-        data: content
-      };
-    } catch (error) {
-      console.error('Error getting content:', error);
-      return {
-        success: false,
-        error: error.message,
-        data: []
-      };
-    }
-  }
-
   // Get content by ID
   static async getContentById(collectionName, id) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available',
+        data: null
+      };
+    }
+
     try {
       const docRef = doc(db, collectionName, id);
       const docSnap = await getDoc(docRef);
@@ -192,20 +262,30 @@ class AdminDataService {
       } else {
         return {
           success: false,
-          error: 'Content not found'
+          error: 'Content not found',
+          data: null
         };
       }
     } catch (error) {
-      console.error('Error getting content by ID:', error);
+      console.error('Error fetching content by ID:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
+        data: null
       };
     }
   }
 
   // Search content
   static async searchContent(collectionName, searchTerm) {
+    if (!this.isFirebaseAvailable()) {
+      return {
+        success: false,
+        error: 'Firebase not available',
+        data: []
+      };
+    }
+
     try {
       const querySnapshot = await getDocs(collection(db, collectionName));
       const content = [];

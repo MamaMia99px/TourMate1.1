@@ -9,8 +9,11 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Image
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
 import AdminDataService from '../../services/admin/AdminDataService';
@@ -35,6 +38,7 @@ const AddRestaurantScreen = ({ navigation }) => {
     features: ''
   });
   
+  const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
@@ -42,6 +46,69 @@ const AddRestaurantScreen = ({ navigation }) => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to select an image.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera permissions to take a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const showImageOptions = () => {
+    Alert.alert(
+      'Add Image',
+      'Choose how you want to add an image',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Gallery', onPress: pickImage },
+      ]
+    );
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
   };
 
   const validateForm = () => {
@@ -74,6 +141,7 @@ const AddRestaurantScreen = ({ navigation }) => {
     try {
       const restaurantData = {
         ...formData,
+        image: selectedImage ? selectedImage.uri : null,
         coordinates: formData.latitude && formData.longitude ? {
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude)
@@ -110,19 +178,21 @@ const AddRestaurantScreen = ({ navigation }) => {
                   contactNumber: '',
                   features: ''
                 });
+                setSelectedImage(null);
               }
             },
             {
-              text: 'Go Back',
-              onPress: () => navigation.goBack()
+              text: 'Go to Dashboard',
+              onPress: () => navigation.navigate('AdminDashboard')
             }
           ]
         );
       } else {
-        Alert.alert('Error', result.error || 'Failed to add restaurant');
+        Alert.alert('Error', result.error);
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      console.error('Error adding restaurant:', error);
+      Alert.alert('Error', 'Failed to add restaurant. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -135,19 +205,10 @@ const AddRestaurantScreen = ({ navigation }) => {
     },
     scrollView: {
       flex: 1,
-      ...(Platform.OS === 'web' && {
-        overflow: 'auto',
-        height: '100vh',
-        maxHeight: '100vh',
-      }),
     },
-    scrollViewContent: {
+    content: {
       padding: 20,
-      paddingBottom: 80, // Add padding at the bottom for better spacing
-      minWidth: '100%',
-      ...(Platform.OS === 'web' && {
-        minHeight: '100%',
-      }),
+      paddingBottom: 100, // Add extra padding at bottom for better scrolling
     },
     title: {
       fontSize: 24,
@@ -165,114 +226,199 @@ const AddRestaurantScreen = ({ navigation }) => {
       color: colors.text,
       marginBottom: 8,
     },
-    requiredLabel: {
-      color: colors.accent,
-    },
     input: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 10,
-      padding: 15,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
       fontSize: 16,
       color: colors.text,
-      borderWidth: 1,
-      borderColor: colors.border || '#E0E0E0',
+      backgroundColor: colors.cardBackground,
     },
-    multilineInput: {
-      height: 100,
+    textArea: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.cardBackground,
+      minHeight: 100,
       textAlignVertical: 'top',
     },
-    coordinatesContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      minWidth: '100%',
+    imageSection: {
+      marginBottom: 20,
     },
-    coordinateInput: {
-      flex: 1,
-      marginHorizontal: 5,
+    imageContainer: {
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.cardBackground,
+      minHeight: 200,
+    },
+    selectedImageContainer: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderStyle: 'solid',
+    },
+    imagePlaceholder: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    imageIcon: {
+      fontSize: 48,
+      color: colors.textSecondary,
+      marginBottom: 10,
+    },
+    imageText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    selectedImage: {
+      width: '100%',
+      height: 200,
+      borderRadius: 8,
+      marginBottom: 10,
+    },
+    imageActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      width: '100%',
+    },
+    imageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 6,
+    },
+    imageButtonText: {
+      color: '#FFFFFF',
+      marginLeft: 8,
+      fontWeight: '600',
+    },
+    removeButton: {
+      backgroundColor: colors.error,
     },
     submitButton: {
-      backgroundColor: colors.accent,
-      padding: 18,
-      borderRadius: 10,
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 8,
       alignItems: 'center',
-      marginTop: 30,
-      marginBottom: 40,
+      marginTop: 20,
+      marginBottom: 20, // Add bottom margin for better spacing
     },
     submitButtonText: {
       color: '#FFFFFF',
       fontSize: 18,
       fontWeight: 'bold',
     },
-    disabledButton: {
-      opacity: 0.6,
+    submitButtonDisabled: {
+      backgroundColor: colors.textSecondary,
     },
-    helper: {
-      fontSize: 12,
-      color: colors.secondaryText,
-      marginTop: 5,
-      fontStyle: 'italic',
-    }
   });
 
   return (
     <KeyboardAvoidingView 
-      style={styles.container} 
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={true}
-        showsHorizontalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
         bounces={true}
         alwaysBounceVertical={false}
-        keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        testID="scroll-view"
       >
         <Text style={styles.title}>Add New Restaurant</Text>
-        
+
+        {/* Image Section */}
+        <View style={styles.imageSection}>
+          <Text style={styles.label}>Restaurant Image *</Text>
+          <View style={[
+            styles.imageContainer,
+            selectedImage && styles.selectedImageContainer
+          ]}>
+            {selectedImage ? (
+              <>
+                <Image source={{ uri: selectedImage.uri }} style={styles.selectedImage} />
+                <View style={styles.imageActions}>
+                  <TouchableOpacity style={styles.imageButton} onPress={showImageOptions}>
+                    <Ionicons name="camera" size={20} color="#FFFFFF" />
+                    <Text style={styles.imageButtonText}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.imageButton, styles.removeButton]} onPress={removeImage}>
+                    <Ionicons name="trash" size={20} color="#FFFFFF" />
+                    <Text style={styles.imageButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <TouchableOpacity style={styles.imagePlaceholder} onPress={showImageOptions}>
+                <Ionicons name="image-outline" size={48} color={colors.textSecondary} />
+                <Text style={styles.imageText}>Tap to add image</Text>
+                <Text style={[styles.imageText, { fontSize: 14, marginTop: 5 }]}>
+                  Recommended: 16:9 aspect ratio
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Basic Information */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Restaurant Name *</Text>
+          <Text style={styles.label}>Restaurant Name *</Text>
           <TextInput
             style={styles.input}
             value={formData.name}
-            onChangeText={(value) => handleInputChange('name', value)}
-            placeholder="e.g., Zubuchon"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('name', text)}
+            placeholder="Enter restaurant name"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Description *</Text>
+          <Text style={styles.label}>Description *</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.textArea}
             value={formData.description}
-            onChangeText={(value) => handleInputChange('description', value)}
-            placeholder="Describe the restaurant, ambiance, and what makes it special..."
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('description', text)}
+            placeholder="Describe the restaurant, its atmosphere, and specialties..."
+            placeholderTextColor={colors.textSecondary}
             multiline
+            numberOfLines={4}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Cuisine Type *</Text>
+          <Text style={styles.label}>Cuisine Type *</Text>
           <TextInput
             style={styles.input}
             value={formData.cuisine}
-            onChangeText={(value) => handleInputChange('cuisine', value)}
-            placeholder="e.g., Filipino, International, Fast Food, Seafood"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('cuisine', text)}
+            placeholder="e.g., Filipino, Chinese, Italian, Fast Food"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Location *</Text>
+          <Text style={styles.label}>Location *</Text>
           <TextInput
             style={styles.input}
             value={formData.location}
-            onChangeText={(value) => handleInputChange('location', value)}
-            placeholder="e.g., IT Park, Ayala Center"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('location', text)}
+            placeholder="e.g., Cebu City, Mandaue City"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -281,31 +427,32 @@ const AddRestaurantScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             value={formData.municipality}
-            onChangeText={(value) => handleInputChange('municipality', value)}
-            placeholder="e.g., Cebu City, Moalboal, Oslob"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('municipality', text)}
+            placeholder="Municipality or district"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Address *</Text>
+          <Text style={styles.label}>Address *</Text>
           <TextInput
             style={styles.input}
             value={formData.address}
-            onChangeText={(value) => handleInputChange('address', value)}
-            placeholder="Full address with street, building, floor details"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('address', text)}
+            placeholder="Full address"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
+        {/* Additional Information */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Operating Hours</Text>
+          <Text style={styles.label}>Opening Hours</Text>
           <TextInput
             style={styles.input}
             value={formData.openHours}
-            onChangeText={(value) => handleInputChange('openHours', value)}
-            placeholder="e.g., 11:00 AM - 10:00 PM, 24 Hours"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('openHours', text)}
+            placeholder="e.g., 11:00 AM - 9:00 PM"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -314,9 +461,9 @@ const AddRestaurantScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             value={formData.priceRange}
-            onChangeText={(value) => handleInputChange('priceRange', value)}
-            placeholder="e.g., ₱100-250, ₱300-600"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('priceRange', text)}
+            placeholder="e.g., ₱100-250, ₱300-500"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -325,31 +472,31 @@ const AddRestaurantScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             value={formData.contactNumber}
-            onChangeText={(value) => handleInputChange('contactNumber', value)}
-            placeholder="e.g., +63 32 123 4567"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('contactNumber', text)}
+            placeholder="Phone number"
+            placeholderTextColor={colors.textSecondary}
             keyboardType="phone-pad"
           />
         </View>
 
+        {/* Coordinates */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Coordinates (Optional)</Text>
-          <Text style={styles.helper}>Enter GPS coordinates for map integration</Text>
-          <View style={styles.coordinatesContainer}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextInput
-              style={[styles.input, styles.coordinateInput]}
+              style={[styles.input, { flex: 1 }]}
               value={formData.latitude}
-              onChangeText={(value) => handleInputChange('latitude', value)}
+              onChangeText={(text) => handleInputChange('latitude', text)}
               placeholder="Latitude"
-              placeholderTextColor={colors.secondaryText}
+              placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
             />
             <TextInput
-              style={[styles.input, styles.coordinateInput]}
+              style={[styles.input, { flex: 1 }]}
               value={formData.longitude}
-              onChangeText={(value) => handleInputChange('longitude', value)}
+              onChangeText={(text) => handleInputChange('longitude', text)}
               placeholder="Longitude"
-              placeholderTextColor={colors.secondaryText}
+              placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
             />
           </View>
@@ -357,32 +504,31 @@ const AddRestaurantScreen = ({ navigation }) => {
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Specialties</Text>
-          <Text style={styles.helper}>Enter signature dishes separated by commas</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.input}
             value={formData.specialties}
-            onChangeText={(value) => handleInputChange('specialties', value)}
-            placeholder="Lechon Cebu, Crispy Pata, Dinuguan, Chicharon"
-            placeholderTextColor={colors.secondaryText}
-            multiline
+            onChangeText={(text) => handleInputChange('specialties', text)}
+            placeholder="e.g., Lechon, Crispy Pata, Dinuguan"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Features</Text>
-          <Text style={styles.helper}>Enter restaurant features separated by commas</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.input}
             value={formData.features}
-            onChangeText={(value) => handleInputChange('features', value)}
-            placeholder="Air Conditioning, Free WiFi, Parking Available, Drive-Thru, Outdoor Seating"
-            placeholderTextColor={colors.secondaryText}
-            multiline
+            onChangeText={(text) => handleInputChange('features', text)}
+            placeholder="e.g., Parking, WiFi, Air Conditioning, Outdoor Seating"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, loading && styles.disabledButton]}
+          style={[
+            styles.submitButton,
+            loading && styles.submitButtonDisabled
+          ]}
           onPress={handleSubmit}
           disabled={loading}
         >

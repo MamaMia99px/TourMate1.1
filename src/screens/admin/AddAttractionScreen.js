@@ -9,8 +9,11 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Image
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
 import AdminDataService from '../../services/admin/AdminDataService';
@@ -34,6 +37,7 @@ const AddAttractionScreen = ({ navigation }) => {
     tips: ''
   });
   
+  const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
@@ -41,6 +45,92 @@ const AddAttractionScreen = ({ navigation }) => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const pickImage = async () => {
+    try {
+      console.log('Starting image picker...');
+      
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Permission status:', status);
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to select an image.');
+        return;
+      }
+
+      // Launch image picker with simpler options
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      console.log('Image picker result:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Image selected:', result.assets[0]);
+        setSelectedImage(result.assets[0]);
+      } else {
+        console.log('Image selection cancelled or failed');
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      console.log('Starting camera...');
+      
+      // Request permissions
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      console.log('Camera permission status:', status);
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera permissions to take a photo.');
+        return;
+      }
+
+      // Launch camera with simpler options
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      console.log('Camera result:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Photo taken:', result.assets[0]);
+        setSelectedImage(result.assets[0]);
+      } else {
+        console.log('Photo cancelled or failed');
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const showImageOptions = () => {
+    console.log('Showing image options...');
+    Alert.alert(
+      'Add Image',
+      'Choose how you want to add an image',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Gallery', onPress: pickImage },
+      ]
+    );
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
   };
 
   const validateForm = () => {
@@ -73,6 +163,7 @@ const AddAttractionScreen = ({ navigation }) => {
     try {
       const attractionData = {
         ...formData,
+        image: selectedImage ? selectedImage.uri : null,
         coordinates: formData.latitude && formData.longitude ? {
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude)
@@ -106,19 +197,21 @@ const AddAttractionScreen = ({ navigation }) => {
                   highlights: '',
                   tips: ''
                 });
+                setSelectedImage(null);
               }
             },
             {
-              text: 'Go Back',
-              onPress: () => navigation.goBack()
+              text: 'Go to Dashboard',
+              onPress: () => navigation.navigate('AdminDashboard')
             }
           ]
         );
       } else {
-        Alert.alert('Error', result.error || 'Failed to add attraction');
+        Alert.alert('Error', result.error);
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      console.error('Error adding attraction:', error);
+      Alert.alert('Error', 'Failed to add attraction. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -131,19 +224,10 @@ const AddAttractionScreen = ({ navigation }) => {
     },
     scrollView: {
       flex: 1,
-      ...(Platform.OS === 'web' && {
-        overflow: 'auto',
-        height: '100vh',
-        maxHeight: '100vh',
-      }),
     },
-    scrollViewContent: {
+    content: {
       padding: 20,
-      paddingBottom: 80, // Add padding at the bottom for the button
-      minWidth: '100%',
-      ...(Platform.OS === 'web' && {
-        minHeight: '100%',
-      }),
+      paddingBottom: 100, // Add extra padding at bottom for better scrolling
     },
     title: {
       fontSize: 24,
@@ -161,136 +245,222 @@ const AddAttractionScreen = ({ navigation }) => {
       color: colors.text,
       marginBottom: 8,
     },
-    requiredLabel: {
-      color: colors.accent,
-    },
     input: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 10,
-      padding: 15,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
       fontSize: 16,
       color: colors.text,
-      borderWidth: 1,
-      borderColor: colors.border || '#E0E0E0',
+      backgroundColor: colors.cardBackground,
     },
-    multilineInput: {
-      height: 100,
+    textArea: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.cardBackground,
+      minHeight: 100,
       textAlignVertical: 'top',
     },
-    coordinatesContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      minWidth: '100%',
+    imageSection: {
+      marginBottom: 20,
     },
-    coordinateInput: {
-      flex: 1,
-      marginHorizontal: 5,
+    imageContainer: {
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.cardBackground,
+      minHeight: 200,
+    },
+    selectedImageContainer: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderStyle: 'solid',
+    },
+    imagePlaceholder: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    imageIcon: {
+      fontSize: 48,
+      color: colors.textSecondary,
+      marginBottom: 10,
+    },
+    imageText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    selectedImage: {
+      width: '100%',
+      height: 200,
+      borderRadius: 8,
+      marginBottom: 10,
+    },
+    imageActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      width: '100%',
+    },
+    imageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 6,
+    },
+    imageButtonText: {
+      color: '#FFFFFF',
+      marginLeft: 8,
+      fontWeight: '600',
+    },
+    removeButton: {
+      backgroundColor: colors.error,
     },
     submitButton: {
-      backgroundColor: colors.accent,
-      padding: 18,
-      borderRadius: 10,
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 8,
       alignItems: 'center',
-      marginTop: 30,
-      marginBottom: 40,
+      marginTop: 20,
+      marginBottom: 20, // Add bottom margin for better spacing
     },
     submitButtonText: {
       color: '#FFFFFF',
       fontSize: 18,
       fontWeight: 'bold',
     },
-    disabledButton: {
-      opacity: 0.6,
+    submitButtonDisabled: {
+      backgroundColor: colors.textSecondary,
     },
-    helper: {
-      fontSize: 12,
-      color: colors.secondaryText,
-      marginTop: 5,
-      fontStyle: 'italic',
-    }
   });
 
   return (
     <KeyboardAvoidingView 
-      style={styles.container} 
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={true}
-        showsHorizontalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
         bounces={true}
         alwaysBounceVertical={false}
-        keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        testID="scroll-view"
       >
         <Text style={styles.title}>Add New Attraction</Text>
-        
+
+        {/* Image Section */}
+        <View style={styles.imageSection}>
+          <Text style={styles.label}>Attraction Image *</Text>
+          <View style={[
+            styles.imageContainer,
+            selectedImage && styles.selectedImageContainer
+          ]}>
+            {selectedImage ? (
+              <>
+                <Image source={{ uri: selectedImage.uri }} style={styles.selectedImage} />
+                <View style={styles.imageActions}>
+                  <TouchableOpacity style={styles.imageButton} onPress={showImageOptions}>
+                    <Ionicons name="camera" size={20} color="#FFFFFF" />
+                    <Text style={styles.imageButtonText}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.imageButton, styles.removeButton]} onPress={removeImage}>
+                    <Ionicons name="trash" size={20} color="#FFFFFF" />
+                    <Text style={styles.imageButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <TouchableOpacity style={styles.imagePlaceholder} onPress={showImageOptions}>
+                <Ionicons name="image-outline" size={48} color={colors.textSecondary} />
+                <Text style={styles.imageText}>Tap to add image</Text>
+                <Text style={[styles.imageText, { fontSize: 14, marginTop: 5 }]}>
+                  Recommended: 16:9 aspect ratio
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Basic Information */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Name *</Text>
+          <Text style={styles.label}>Name *</Text>
           <TextInput
             style={styles.input}
             value={formData.name}
-            onChangeText={(value) => handleInputChange('name', value)}
-            placeholder="e.g., Magellan's Cross"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('name', text)}
+            placeholder="Enter attraction name"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Location *</Text>
+          <Text style={styles.label}>Location *</Text>
           <TextInput
             style={styles.input}
             value={formData.location}
-            onChangeText={(value) => handleInputChange('location', value)}
-            placeholder="e.g., Cebu City"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('location', text)}
+            placeholder="e.g., Cebu City, Mandaue City"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Description *</Text>
+          <Text style={styles.label}>Description *</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.textArea}
             value={formData.description}
-            onChangeText={(value) => handleInputChange('description', value)}
-            placeholder="Describe the attraction, its history, and what makes it special..."
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('description', text)}
+            placeholder="Describe the attraction..."
+            placeholderTextColor={colors.textSecondary}
             multiline
+            numberOfLines={4}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Address *</Text>
+          <Text style={styles.label}>Address *</Text>
           <TextInput
             style={styles.input}
             value={formData.address}
-            onChangeText={(value) => handleInputChange('address', value)}
-            placeholder="Full address with street, city, postal code"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('address', text)}
+            placeholder="Full address"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
+        {/* Additional Information */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Category</Text>
           <TextInput
             style={styles.input}
             value={formData.category}
-            onChangeText={(value) => handleInputChange('category', value)}
-            placeholder="e.g., Historical Site, Religious Site, Museum"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('category', text)}
+            placeholder="e.g., Historical, Cultural, Nature"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Open Hours</Text>
+          <Text style={styles.label}>Opening Hours</Text>
           <TextInput
             style={styles.input}
             value={formData.openHours}
-            onChangeText={(value) => handleInputChange('openHours', value)}
-            placeholder="e.g., 8:00 AM - 6:00 PM"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('openHours', text)}
+            placeholder="e.g., 9:00 AM - 6:00 PM"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -299,30 +469,30 @@ const AddAttractionScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             value={formData.entranceFee}
-            onChangeText={(value) => handleInputChange('entranceFee', value)}
-            placeholder="e.g., Free, ₱50, ₱100-200"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('entranceFee', text)}
+            placeholder="e.g., ₱100, Free"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
+        {/* Coordinates */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Coordinates (Optional)</Text>
-          <Text style={styles.helper}>Enter GPS coordinates for map integration</Text>
-          <View style={styles.coordinatesContainer}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextInput
-              style={[styles.input, styles.coordinateInput]}
+              style={[styles.input, { flex: 1 }]}
               value={formData.latitude}
-              onChangeText={(value) => handleInputChange('latitude', value)}
+              onChangeText={(text) => handleInputChange('latitude', text)}
               placeholder="Latitude"
-              placeholderTextColor={colors.secondaryText}
+              placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
             />
             <TextInput
-              style={[styles.input, styles.coordinateInput]}
+              style={[styles.input, { flex: 1 }]}
               value={formData.longitude}
-              onChangeText={(value) => handleInputChange('longitude', value)}
+              onChangeText={(text) => handleInputChange('longitude', text)}
               placeholder="Longitude"
-              placeholderTextColor={colors.secondaryText}
+              placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
             />
           </View>
@@ -330,31 +500,33 @@ const AddAttractionScreen = ({ navigation }) => {
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Highlights</Text>
-          <Text style={styles.helper}>Enter key features separated by commas</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.input}
             value={formData.highlights}
-            onChangeText={(value) => handleInputChange('highlights', value)}
-            placeholder="Historical significance, Beautiful architecture, Photo opportunities"
-            placeholderTextColor={colors.secondaryText}
-            multiline
+            onChangeText={(text) => handleInputChange('highlights', text)}
+            placeholder="e.g., Beautiful view, Historical significance, Photo opportunities"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Visitor Tips</Text>
+          <Text style={styles.label}>Tips for Visitors</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.textArea}
             value={formData.tips}
-            onChangeText={(value) => handleInputChange('tips', value)}
-            placeholder="Best time to visit, what to bring, parking information, etc."
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('tips', text)}
+            placeholder="Best time to visit, what to bring, etc."
+            placeholderTextColor={colors.textSecondary}
             multiline
+            numberOfLines={3}
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, loading && styles.disabledButton]}
+          style={[
+            styles.submitButton,
+            loading && styles.submitButtonDisabled
+          ]}
           onPress={handleSubmit}
           disabled={loading}
         >

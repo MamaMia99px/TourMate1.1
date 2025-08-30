@@ -9,8 +9,11 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Image
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
 import AdminDataService from '../../services/admin/AdminDataService';
@@ -31,6 +34,7 @@ const AddDestinationScreen = ({ navigation }) => {
     entranceFee: ''
   });
   
+  const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
@@ -38,6 +42,69 @@ const AddDestinationScreen = ({ navigation }) => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to select an image.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera permissions to take a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const showImageOptions = () => {
+    Alert.alert(
+      'Add Image',
+      'Choose how you want to add an image',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Gallery', onPress: pickImage },
+      ]
+    );
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
   };
 
   const validateForm = () => {
@@ -60,6 +127,7 @@ const AddDestinationScreen = ({ navigation }) => {
     try {
       const destinationData = {
         ...formData,
+        image: selectedImage ? selectedImage.uri : null,
         highlights: formData.highlights ? formData.highlights.split(',').map(h => h.trim()) : [],
         activities: formData.activities ? formData.activities.split(',').map(a => a.trim()) : [],
         facilities: formData.facilities ? formData.facilities.split(',').map(f => f.trim()) : [],
@@ -89,19 +157,21 @@ const AddDestinationScreen = ({ navigation }) => {
                   facilities: '',
                   entranceFee: ''
                 });
+                setSelectedImage(null);
               }
             },
             {
-              text: 'Go Back',
-              onPress: () => navigation.goBack()
+              text: 'Go to Dashboard',
+              onPress: () => navigation.navigate('AdminDashboard')
             }
           ]
         );
       } else {
-        Alert.alert('Error', result.error || 'Failed to add destination');
+        Alert.alert('Error', result.error);
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      console.error('Error adding destination:', error);
+      Alert.alert('Error', 'Failed to add destination. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -114,19 +184,10 @@ const AddDestinationScreen = ({ navigation }) => {
     },
     scrollView: {
       flex: 1,
-      ...(Platform.OS === 'web' && {
-        overflow: 'auto',
-        height: '100vh',
-        maxHeight: '100vh',
-      }),
     },
-    scrollViewContent: {
+    content: {
       padding: 20,
-      paddingBottom: 80, // Add padding at the bottom for the button
-      minWidth: '100%',
-      ...(Platform.OS === 'web' && {
-        minHeight: '100%',
-      }),
+      paddingBottom: 100, // Add extra padding at bottom for better scrolling
     },
     title: {
       fontSize: 24,
@@ -144,104 +205,263 @@ const AddDestinationScreen = ({ navigation }) => {
       color: colors.text,
       marginBottom: 8,
     },
-    requiredLabel: {
-      color: colors.accent,
-    },
     input: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 10,
-      padding: 15,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
       fontSize: 16,
       color: colors.text,
-      borderWidth: 1,
-      borderColor: colors.border || '#E0E0E0',
+      backgroundColor: colors.cardBackground,
     },
-    multilineInput: {
-      height: 100,
+    textArea: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.cardBackground,
+      minHeight: 100,
       textAlignVertical: 'top',
     },
-    submitButton: {
-      backgroundColor: colors.accent,
-      padding: 18,
-      borderRadius: 10,
+    imageSection: {
+      marginBottom: 20,
+    },
+    imageContainer: {
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      borderRadius: 12,
+      padding: 20,
       alignItems: 'center',
-      marginTop: 30,
-      marginBottom: 40,
+      justifyContent: 'center',
+      backgroundColor: colors.cardBackground,
+      minHeight: 200,
+    },
+    selectedImageContainer: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderStyle: 'solid',
+    },
+    imagePlaceholder: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    imageIcon: {
+      fontSize: 48,
+      color: colors.textSecondary,
+      marginBottom: 10,
+    },
+    imageText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    selectedImage: {
+      width: '100%',
+      height: 200,
+      borderRadius: 8,
+      marginBottom: 10,
+    },
+    imageActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      width: '100%',
+    },
+    imageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 6,
+    },
+    imageButtonText: {
+      color: '#FFFFFF',
+      marginLeft: 8,
+      fontWeight: '600',
+    },
+    removeButton: {
+      backgroundColor: colors.error,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 20, // Add bottom margin for better spacing
     },
     submitButtonText: {
       color: '#FFFFFF',
       fontSize: 18,
       fontWeight: 'bold',
     },
-    disabledButton: {
-      opacity: 0.6,
-    }
+    submitButtonDisabled: {
+      backgroundColor: colors.textSecondary,
+    },
   });
 
   return (
     <KeyboardAvoidingView 
-      style={styles.container} 
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={true}
-        showsHorizontalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
         bounces={true}
         alwaysBounceVertical={false}
-        keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        testID="scroll-view"
       >
         <Text style={styles.title}>Add New Destination</Text>
-        
+
+        {/* Image Section */}
+        <View style={styles.imageSection}>
+          <Text style={styles.label}>Destination Image *</Text>
+          <View style={[
+            styles.imageContainer,
+            selectedImage && styles.selectedImageContainer
+          ]}>
+            {selectedImage ? (
+              <>
+                <Image source={{ uri: selectedImage.uri }} style={styles.selectedImage} />
+                <View style={styles.imageActions}>
+                  <TouchableOpacity style={styles.imageButton} onPress={showImageOptions}>
+                    <Ionicons name="camera" size={20} color="#FFFFFF" />
+                    <Text style={styles.imageButtonText}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.imageButton, styles.removeButton]} onPress={removeImage}>
+                    <Ionicons name="trash" size={20} color="#FFFFFF" />
+                    <Text style={styles.imageButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <TouchableOpacity style={styles.imagePlaceholder} onPress={showImageOptions}>
+                <Ionicons name="image-outline" size={48} color={colors.textSecondary} />
+                <Text style={styles.imageText}>Tap to add image</Text>
+                <Text style={[styles.imageText, { fontSize: 14, marginTop: 5 }]}>
+                  Recommended: 16:9 aspect ratio
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Basic Information */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Destination Name *</Text>
+          <Text style={styles.label}>Destination Name *</Text>
           <TextInput
             style={styles.input}
             value={formData.name}
-            onChangeText={(value) => handleInputChange('name', value)}
-            placeholder="e.g., Sirao Flower Garden"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('name', text)}
+            placeholder="Enter destination name"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Location *</Text>
+          <Text style={styles.label}>Location *</Text>
           <TextInput
             style={styles.input}
             value={formData.location}
-            onChangeText={(value) => handleInputChange('location', value)}
-            placeholder="e.g., Busay, Cebu City"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('location', text)}
+            placeholder="e.g., Cebu City, Mandaue City"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Description *</Text>
+          <Text style={styles.label}>Description *</Text>
           <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={styles.textArea}
             value={formData.description}
-            onChangeText={(value) => handleInputChange('description', value)}
-            placeholder="Describe the destination..."
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('description', text)}
+            placeholder="Describe the destination, its features, and attractions..."
+            placeholderTextColor={colors.textSecondary}
             multiline
+            numberOfLines={4}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, styles.requiredLabel]}>Address *</Text>
+          <Text style={styles.label}>Address *</Text>
           <TextInput
             style={styles.input}
             value={formData.address}
-            onChangeText={(value) => handleInputChange('address', value)}
-            placeholder="Full address or detailed directions"
-            placeholderTextColor={colors.secondaryText}
+            onChangeText={(text) => handleInputChange('address', text)}
+            placeholder="Full address"
+            placeholderTextColor={colors.textSecondary}
+          />
+        </View>
+
+        {/* Additional Information */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Category</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.category}
+            onChangeText={(text) => handleInputChange('category', text)}
+            placeholder="e.g., Historical, Cultural, Nature, Adventure"
+            placeholderTextColor={colors.textSecondary}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Highlights</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.highlights}
+            onChangeText={(text) => handleInputChange('highlights', text)}
+            placeholder="e.g., Beautiful view, Historical significance, Photo opportunities"
+            placeholderTextColor={colors.textSecondary}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Activities</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.activities}
+            onChangeText={(text) => handleInputChange('activities', text)}
+            placeholder="e.g., Hiking, Photography, Sightseeing, Shopping"
+            placeholderTextColor={colors.textSecondary}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Facilities</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.facilities}
+            onChangeText={(text) => handleInputChange('facilities', text)}
+            placeholder="e.g., Parking, Restrooms, Food Stalls, Souvenir Shops"
+            placeholderTextColor={colors.textSecondary}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Entrance Fee</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.entranceFee}
+            onChangeText={(text) => handleInputChange('entranceFee', text)}
+            placeholder="e.g., ₱100, Free"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, loading && styles.disabledButton]}
+          style={[
+            styles.submitButton,
+            loading && styles.submitButtonDisabled
+          ]}
           onPress={handleSubmit}
           disabled={loading}
         >
