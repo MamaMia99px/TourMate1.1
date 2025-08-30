@@ -227,10 +227,7 @@ const ProfileScreen = ({ navigation, route, userData: userDataProp }) => {
               navigation.reset({
                 index: 0,
                 routes: [{ 
-                  name: 'Auth',
-                  params: {
-                    screen: 'Landing'
-                  }
+                  name: 'Landing'
                 }],
               });
               setIsLoading(false);

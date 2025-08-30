@@ -1,6 +1,6 @@
 // HomeScreen.js - Premium tourism experience with enhanced UI
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, ImageBackground, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
@@ -41,13 +41,14 @@ const HomeScreen = ({ navigation, route, userData: userDataProp }) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        alwaysBounceVertical={false}
       >
-        {/* Greeting at the top */}
         {/* Full Screen Welcome Section */}
         <View style={styles.fullScreenWelcomeWrapper}>
           <ImageBackground
@@ -60,9 +61,6 @@ const HomeScreen = ({ navigation, route, userData: userDataProp }) => {
               style={styles.welcomeGradient}
             >
               <View style={styles.welcomeContainer}>
-                <View style={styles.welcomeBadge}>
-                  <Text style={styles.welcomeBadgeText}>🏝️</Text>
-                </View>
                 <Text style={styles.welcomeTitle}>Discover Cebu</Text>
                 <Text style={styles.welcomeSubtitle}>Your gateway to paradise</Text>
                 <View style={styles.welcomeDescriptionContainer}>
@@ -70,7 +68,6 @@ const HomeScreen = ({ navigation, route, userData: userDataProp }) => {
                     Discover the breathtaking beauty of Cebu's pristine beaches. Immerse yourself in vibrant culture, unique adventures, and warm hospitality. In the Queen City of the South, every moment is a journey worth cherishing.
                   </Text>
                 </View>
-                
               </View>
             </LinearGradient>
           </ImageBackground>
@@ -104,7 +101,7 @@ const HomeScreen = ({ navigation, route, userData: userDataProp }) => {
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -112,89 +109,75 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
   },
-
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 100, // Increased padding to ensure content doesn't overlap with bottom navigation
   },
   welcomeBackground: {
-    flex: 1,
-    overflow: 'hidden',
+    width: '100%',
+    height: 600, // Fixed height for better control
   },
   welcomeGradient: {
-    height: 650,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   welcomeContainer: {
-    flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    textAlign: 'justify',
-    width: '100%',
-  },
-  welcomeBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 50,
-    padding: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  welcomeBadgeText: {
-    fontSize: 28,
-    fontWeight: '900',
   },
   welcomeTitle: {
-    fontSize: 40,
-    fontWeight: '900',
+    fontSize: 28, // Reduced from 40 to 28 as requested
+    fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 6,
+    marginBottom: 12, // Increased spacing
     textAlign: 'center',
-    alignSelf: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 6,
-    letterSpacing: 1,
-    width: '100%',
-  },
-  welcomeSubtitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 1,
-    textAlign: 'center',
-    opacity: 0.95,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
     letterSpacing: 0.5,
   },
+  welcomeSubtitle: {
+    fontSize: 18, // Reduced from 19 to 18 as requested
+    fontWeight: '600', // Semi-bold as requested
+    color: '#FFFFFF',
+    marginBottom: 24, // Increased spacing
+    textAlign: 'center',
+    opacity: 0.95,
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
   welcomeDescriptionContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Added overlay for better text readability
     borderRadius: 16,
-    padding: 28,
-    marginHorizontal: 2,
-    marginTop: 8,
-    backdropFilter: 'blur(10px)',
+    padding: 24,
+    marginHorizontal: 8,
+    width: '100%',
+    maxWidth: 400,
   },
   welcomeDescription: {
-    fontSize: 17,
+    fontSize: 16, // Reduced from 17 to 16 as requested
     color: '#FFFFFF',
-    lineHeight: 28,
-    textAlign: 'center',
-    justifyContent: 'center',
+    lineHeight: 24, // Added lineHeight as requested
+    textAlign: 'left', // Changed from center to left for better readability
     opacity: 0.98,
-    Width: 400,
     fontWeight: '400',
     letterSpacing: 0.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   contentContainer: {
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingTop: 32, // Increased padding
+    paddingBottom: 32, // Increased padding
+    paddingHorizontal: 20,
   },
   loadingText: {
     marginTop: 16,
@@ -202,38 +185,12 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '500',
   },
-  scrollIndicator: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+  centered: {
     justifyContent: 'center',
-  },
-  scrollIndicatorText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    opacity: 0.9,
-    letterSpacing: 0.5,
-  },
-  scrollIndicatorIcon: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    opacity: 0.8,
-  },
-  greetingContainer: {
-    padding: 20,
-  },
-  greetingText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    alignItems: 'center',
   },
   fullScreenWelcomeWrapper: {
-    flex: 1,
+    width: '100%',
   },
 });
 

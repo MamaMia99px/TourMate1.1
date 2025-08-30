@@ -1,0 +1,38 @@
+/* Web-specific scrolling fixes for React Native Web */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Ensure ScrollView components work properly on web */
+[data-testid="scroll-view"] {
+  overflow: auto !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Fix for nested scroll containers */
+.scroll-view-container {
+  overflow: auto !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Ensure content is scrollable */
+.scroll-view-content {
+  min-height: 100% !important;
+}
+
+/* Fix for web-specific scrolling issues */
+@media screen and (max-width: 768px) {
+  [data-testid="scroll-view"] {
+    height: calc(100vh - 60px) !important;
+  }
+}

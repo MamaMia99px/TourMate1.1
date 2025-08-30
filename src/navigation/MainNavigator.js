@@ -96,9 +96,14 @@ export default function MainNavigator({ route }) {
         name="Home" 
         options={{
           title: (userData.fullName || userData.displayName || userData.name) ? 
-            `🏝️ Welcome, ${(userData.fullName || userData.displayName || userData.name).split(' ')[0]}!` : 
-            '🏝️ Discover Cebu',
+            `Welcome, ${(userData.fullName || userData.displayName || userData.name).split(' ')[0]}!` : 
+            'Discover Cebu',
           tabBarLabel: 'Home',
+          headerTitleStyle: {
+            color: colors.text,
+            fontWeight: '700',
+            fontSize: 18,
+          },
         }}
       >
         {(props) => <HomeScreen {...props} userData={userData} />}
@@ -106,7 +111,7 @@ export default function MainNavigator({ route }) {
       <Tab.Screen 
         name="Search" 
         options={{
-          title: '🔍 Explore Destinations',
+          title: 'Explore Destinations',
           tabBarLabel: 'Search',
         }}
       >
@@ -115,7 +120,7 @@ export default function MainNavigator({ route }) {
       <Tab.Screen 
         name="Profile" 
         options={{
-          title: '👤 My Travel Profile',
+          title: 'My Travel Profile',
           tabBarLabel: 'Profile',
         }}
       >

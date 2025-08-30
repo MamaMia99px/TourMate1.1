@@ -14,6 +14,7 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
 import AdminDataService from '../../services/admin/AdminDataService';
+import { logoutWithConfirmation } from '../../utils/logoutUtils';
 
 const AddAttractionScreen = ({ navigation }) => {
   const { isDarkMode } = useTheme();
@@ -130,10 +131,19 @@ const AddAttractionScreen = ({ navigation }) => {
     },
     scrollView: {
       flex: 1,
+      ...(Platform.OS === 'web' && {
+        overflow: 'auto',
+        height: '100vh',
+        maxHeight: '100vh',
+      }),
     },
     scrollViewContent: {
       padding: 20,
       paddingBottom: 80, // Add padding at the bottom for the button
+      minWidth: '100%',
+      ...(Platform.OS === 'web' && {
+        minHeight: '100%',
+      }),
     },
     title: {
       fontSize: 24,
@@ -152,7 +162,7 @@ const AddAttractionScreen = ({ navigation }) => {
       marginBottom: 8,
     },
     requiredLabel: {
-      color: colors.primary,
+      color: colors.accent,
     },
     input: {
       backgroundColor: colors.cardBackground,
@@ -170,13 +180,14 @@ const AddAttractionScreen = ({ navigation }) => {
     coordinatesContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      minWidth: '100%',
     },
     coordinateInput: {
       flex: 1,
       marginHorizontal: 5,
     },
     submitButton: {
-      backgroundColor: colors.primary,
+      backgroundColor: colors.accent,
       padding: 18,
       borderRadius: 10,
       alignItems: 'center',
@@ -207,10 +218,12 @@ const AddAttractionScreen = ({ navigation }) => {
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={true}
         bounces={true}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
       >
         <Text style={styles.title}>Add New Attraction</Text>
         

@@ -1,5 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../utils/theme';
 
@@ -23,13 +25,25 @@ const AdminNavigator = () => {
     headerShown: true,
     title: title,
     headerStyle: {
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.primary,
     },
-    headerTintColor: colors.primary,
+    headerTintColor: '#FFFFFF',
     headerTitleStyle: {
-      color: colors.text,
+      color: '#FFFFFF',
       fontWeight: '600',
     },
+    headerRight: () => (
+      <TouchableOpacity
+        style={{ marginRight: 15, padding: 5 }}
+        onPress={() => {
+          // Import and use logout utility
+          const { directLogout } = require('../utils/logoutUtils');
+          directLogout(navigation);
+        }}
+      >
+        <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+    ),
   });
 
   return (
@@ -37,11 +51,11 @@ const AdminNavigator = () => {
       screenOptions={{
         headerShown: false,
         headerStyle: {
-          backgroundColor: colors.cardBackground,
+          backgroundColor: colors.primary,
         },
-        headerTintColor: colors.primary,
+        headerTintColor: '#FFFFFF',
         headerTitleStyle: {
-          color: colors.text,
+          color: '#FFFFFF',
           fontWeight: '600',
         },
       }}

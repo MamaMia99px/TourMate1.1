@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,7 @@ import AdminDataService from '../../services/admin/AdminDataService';
 import AdminAuthService from '../../services/auth/AdminAuthService';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
+import { directLogout } from '../../utils/logoutUtils';
 
 const AdminDashboard = ({ navigation }) => {
   const { isDarkMode } = useTheme();
@@ -76,38 +78,16 @@ const AdminDashboard = ({ navigation }) => {
 
   const handleLogout = () => {
     console.log('AdminDashboard: Logout button pressed');
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout from admin panel?',
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => console.log('Logout cancelled') },
-        {
-          text: 'Logout',
-          onPress: async () => {
-            console.log('AdminDashboard: User confirmed logout');
-            try {
-              console.log('AdminDashboard: Calling AdminAuthService.logoutAdmin()');
-              const logoutResult = await AdminAuthService.logoutAdmin();
-              console.log('AdminDashboard: Logout result:', logoutResult);
-              
-              if (logoutResult.success) {
-                console.log('AdminDashboard: Logout successful, resetting navigation');
-                // Reset the navigation stack to Auth and go to Landing
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Auth', params: { screen: 'Landing' } }],
-                });
-              } else {
-                console.log('AdminDashboard: Logout failed:', logoutResult.error);
-                Alert.alert('Logout Error', 'Failed to logout. Please try again.');
-              }
-            } catch (error) {
-              console.error('AdminDashboard: Logout error:', error);
-              Alert.alert('Logout Error', 'An error occurred during logout.');
-            }
-          },
-        },
-      ]
+    // Direct logout without confirmation
+    directLogout(
+      navigation,
+      () => {
+        console.log('AdminDashboard: Logout successful');
+      },
+      (error) => {
+        console.error('AdminDashboard: Logout error:', error);
+        Alert.alert('Logout Error', 'Failed to logout. Please try again.');
+      }
     );
   };
 
@@ -119,7 +99,7 @@ const AdminDashboard = ({ navigation }) => {
       subtitle: 'Add new tourist attractions',
       icon: 'business',
       color: colors.primary,
-      backgroundColor: 'rgba(255, 107, 53, 0.1)',
+      backgroundColor: 'rgba(30, 58, 138, 0.1)',
       onPress: () => navigation.navigate('AddAttraction'),
     },
     {
@@ -128,7 +108,7 @@ const AdminDashboard = ({ navigation }) => {
       subtitle: 'Add new dining establishments',
       icon: 'restaurant',
       color: colors.secondary,
-      backgroundColor: 'rgba(78, 205, 196, 0.1)',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
       onPress: () => navigation.navigate('AddRestaurant'),
     },
     {
@@ -137,7 +117,7 @@ const AdminDashboard = ({ navigation }) => {
       subtitle: 'Add new beach destinations',
       icon: 'water',
       color: colors.tertiary,
-      backgroundColor: 'rgba(69, 183, 209, 0.1)',
+      backgroundColor: 'rgba(96, 165, 250, 0.1)',
       onPress: () => navigation.navigate('AddBeach'),
     },
     {
@@ -145,8 +125,8 @@ const AdminDashboard = ({ navigation }) => {
       title: 'Add Destination',
       subtitle: 'Add new travel destinations',
       icon: 'earth',
-      color: colors.primary,
-      backgroundColor: 'rgba(255, 107, 53, 0.1)',
+      color: colors.accent,
+      backgroundColor: 'rgba(249, 115, 22, 0.1)',
       onPress: () => navigation.navigate('AddDestination'),
     },
     {
@@ -154,8 +134,8 @@ const AdminDashboard = ({ navigation }) => {
       title: 'Manage Content',
       subtitle: 'View and edit existing content',
       icon: 'create',
-      color: colors.warning,
-      backgroundColor: 'rgba(243, 156, 18, 0.1)',
+      color: colors.accent,
+      backgroundColor: 'rgba(249, 115, 22, 0.1)',
       onPress: () => navigation.navigate('ManageContent'),
     },
   ];
@@ -167,8 +147,8 @@ const AdminDashboard = ({ navigation }) => {
       title: 'View Reports',
       subtitle: 'Analytics and statistics',
       icon: 'bar-chart',
-      color: colors.success,
-      backgroundColor: 'rgba(39, 174, 96, 0.1)',
+      color: colors.accent,
+      backgroundColor: 'rgba(249, 115, 22, 0.1)',
       onPress: () => navigation.navigate('ViewReports'),
     },
   ];
@@ -233,10 +213,14 @@ const AdminDashboard = ({ navigation }) => {
 
       <ScrollView 
         style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.scrollViewContent}
         bounces={true}
         alwaysBounceVertical={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        testID="scroll-view"
       >
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
@@ -367,9 +351,18 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      overflow: 'auto',
+      height: '100vh',
+      maxHeight: '100vh',
+    }),
   },
   scrollViewContent: {
     paddingBottom: 80, // Add padding at the bottom for content
+    minWidth: '100%',
+    ...(Platform.OS === 'web' && {
+      minHeight: '100%',
+    }),
   },
   statsContainer: {
     padding: 20,
@@ -384,6 +377,7 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    minWidth: '100%',
   },
   statCard: {
     width: '48%',
@@ -419,6 +413,7 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    minWidth: '100%',
   },
   managementCard: {
     width: '48%',

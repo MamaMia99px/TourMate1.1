@@ -8,12 +8,14 @@ import {
   StatusBar,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AdminDataService from '../../services/admin/AdminDataService';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
+import { directLogout } from '../../utils/logoutUtils';
 
 const ViewReportsScreen = ({ navigation }) => {
   const { isDarkMode } = useTheme();
@@ -177,16 +179,23 @@ const ViewReportsScreen = ({ navigation }) => {
             <TouchableOpacity style={styles.refreshButton} onPress={loadReportsData}>
               <Ionicons name="refresh" size={24} color="#FFFFFF" />
             </TouchableOpacity>
+            <TouchableOpacity style={styles.logoutButton} onPress={() => directLogout(navigation)}>
+              <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
 
       <ScrollView 
         style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.scrollViewContent}
         bounces={true}
         alwaysBounceVertical={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        testID="scroll-view"
       >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📊 Overview</Text>
@@ -402,6 +411,15 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
+  logoutButton: {
+    borderRadius: 12,
+    padding: 8,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
   content: {
     flex: 1,
   },
@@ -419,6 +437,7 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    minWidth: '100%',
   },
   statCard: {
     width: '48%',
@@ -470,6 +489,7 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    minWidth: '100%',
   },
   chartBarContainer: {
     marginBottom: 16,
@@ -506,6 +526,7 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    minWidth: '100%',
   },
   recentItem: {
     flexDirection: 'row',
@@ -549,9 +570,18 @@ const getStyles = (colors, isDarkMode) => StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      overflow: 'auto',
+      height: '100vh',
+      maxHeight: '100vh',
+    }),
   },
   scrollViewContent: {
     paddingBottom: 80, // Add padding at the bottom for content
+    minWidth: '100%',
+    ...(Platform.OS === 'web' && {
+      minHeight: '100%',
+    }),
   },
 });
 

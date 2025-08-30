@@ -1,40 +1,40 @@
 export const LightColors = {
-  // Premium Tourism Brand Colors - Inspired by luxury travel
-  primary: '#FF6B35', // Vibrant coral sunset - energetic and inviting
-  primaryDark: '#E55A2B', // Deeper coral for depth
-  secondary: '#4ECDC4', // Turquoise waters - tropical paradise
-  tertiary: '#45B7D1', // Sky blue - clear tropical skies
+  // Professional Admin Color Palette
+  primary: '#1E3A8A', // Navy Blue – trust & professionalism
+  primaryDark: '#1E40AF', // Darker navy for depth
+  secondary: '#3B82F6', // Sky Blue – refreshing, travel vibe
+  tertiary: '#60A5FA', // Lighter sky blue
   
-  // Sophisticated backgrounds with warmth
-  background: '#FEFCF8', // Warm cream - like sandy beaches
+  // Clean and minimal backgrounds
+  background: '#F9FAFB', // Light Gray/Off-White – clean and minimal
   cardBackground: '#FFFFFF',
-  surface: '#FEFEFE',
+  surface: '#FFFFFF',
   inputBackground: '#FFFFFF',
   
-  // Rich text hierarchy
-  text: '#2C3E50', // Deep charcoal blue - sophisticated
-  textSecondary: '#5D6D7E', // Warm gray
-  textPlaceholder: '#95A5A6', // Light warm gray
+  // Readable text hierarchy
+  text: '#111827', // Dark Gray – readable text
+  textSecondary: '#6B7280', // Medium gray
+  textPlaceholder: '#9CA3AF', // Light gray
   
-  // Elegant borders and dividers
-  border: '#E8F4F8', // Very light blue-gray
+  // Professional borders and dividers
+  border: '#E5E7EB', // Light gray border
   
-  // Tourism-specific status colors
-  error: '#E74C3C', // Warm red
-  success: '#27AE60', // Lush green - tropical vegetation
-  warning: '#F39C12', // Golden amber - sunset glow
+  // Status colors
+  error: '#EF4444', // Red
+  success: '#10B981', // Green
+  warning: '#F59E0B', // Amber
   
-  // Premium accent colors for tourism
-  accent: '#FFD700', // Pure gold - luxury and premium feel
-  highlight: '#FF8A65', // Warm coral - beach sunset
-  info: '#3498DB', // Clear blue - tropical waters
+  // Accent colors for highlights and buttons
+  accent: '#F97316', // Orange – buttons & highlights
+  highlight: '#FB923C', // Lighter orange
+  info: '#3B82F6', // Sky blue
   
-  // Additional tourism palette
-  beachBlue: '#00BCD4', // Crystal clear water
-  sunsetOrange: '#FF7043', // Warm sunset
-  tropicalGreen: '#4CAF50', // Lush vegetation
-  sandBeige: '#F5E6D3', // Sandy beaches
-  coralPink: '#FF5722', // Coral reefs
+  // Additional professional palette
+  beachBlue: '#0EA5E9', // Professional blue
+  sunsetOrange: '#F97316', // Orange
+  tropicalGreen: '#059669', // Professional green
+  sandBeige: '#F3F4F6', // Light gray
+  coralPink: '#EC4899', // Pink
   
   // UI Enhancement colors
   overlay: 'rgba(0, 0, 0, 0.5)', // Semi-transparent overlay
@@ -42,42 +42,42 @@ export const LightColors = {
 };
 
 export const DarkColors = {
-  // Premium Dark Tourism - Night luxury experience
-  primary: '#FF8A65', // Softer coral for dark mode
-  primaryDark: '#FF7043', // Warm coral
-  secondary: '#4DD0E1', // Bright turquoise
-  tertiary: '#64B5F6', // Bright sky blue
+  // Professional Dark Admin - Night mode
+  primary: '#1E3A8A', // Navy Blue – trust & professionalism
+  primaryDark: '#1E40AF', // Darker navy
+  secondary: '#3B82F6', // Sky Blue
+  tertiary: '#60A5FA', // Lighter sky blue
   
-  // Sophisticated dark backgrounds
-  background: '#1A1A2E', // Deep navy night - luxury feel
-  cardBackground: '#16213E', // Rich dark blue
-  surface: '#0F3460', // Medium navy
-  inputBackground: '#16213E', // Input background
+  // Dark backgrounds
+  background: '#111827', // Dark gray background
+  cardBackground: '#1F2937', // Darker card background
+  surface: '#374151', // Medium dark surface
+  inputBackground: '#1F2937', // Input background
   
-  // Premium light text for dark mode
-  text: '#ECEFF1', // Soft white
-  textSecondary: '#B0BEC5', // Light blue-gray
-  textPlaceholder: '#78909C', // Medium blue-gray
+  // Light text for dark mode
+  text: '#F9FAFB', // Light gray text
+  textSecondary: '#D1D5DB', // Medium light gray
+  textPlaceholder: '#9CA3AF', // Light gray
   
   // Dark mode borders
-  border: '#37474F', // Dark blue-gray
+  border: '#374151', // Dark gray border
   
   // Enhanced status colors for dark mode
-  error: '#FF5252', // Bright coral red
-  success: '#4CAF50', // Bright green
-  warning: '#FFB74D', // Bright amber
+  error: '#F87171', // Bright red
+  success: '#34D399', // Bright green
+  warning: '#FBBF24', // Bright amber
   
-  // Premium dark mode accents
-  accent: '#FFD54F', // Bright gold
-  highlight: '#FFAB91', // Soft coral
-  info: '#42A5F5', // Bright blue
+  // Dark mode accents
+  accent: '#F97316', // Orange
+  highlight: '#FB923C', // Lighter orange
+  info: '#60A5FA', // Bright blue
   
-  // Dark mode tourism palette
-  beachBlue: '#26C6DA', // Bright cyan
-  sunsetOrange: '#FFAB91', // Soft sunset
-  tropicalGreen: '#66BB6A', // Bright green
-  sandBeige: '#8D6E63', // Warm brown
-  coralPink: '#FF7043', // Bright coral
+  // Dark mode professional palette
+  beachBlue: '#38BDF8', // Bright blue
+  sunsetOrange: '#FB923C', // Bright orange
+  tropicalGreen: '#34D399', // Bright green
+  sandBeige: '#6B7280', // Medium gray
+  coralPink: '#F472B6', // Bright pink
   
   // UI Enhancement colors for dark mode
   overlay: 'rgba(0, 0, 0, 0.8)', // Darker overlay for dark mode

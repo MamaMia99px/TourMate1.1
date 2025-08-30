@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
+import './src/styles/webScrollFix.css';
 import { ThemeProvider } from './src/contexts/ThemeContext';
+import { fixWebScrolling } from './src/utils/webScrollFix';
 import { createStackNavigator } from '@react-navigation/stack';
 import MainNavigator from './src/navigation/MainNavigator';
 import AdminNavigator from './src/navigation/AdminNavigator';
@@ -118,6 +120,13 @@ export default function App() {
   if (!Environment.isConfigurationValid()) {
     console.warn('App configuration validation failed');
   }
+
+  // Fix web scrolling issues
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      fixWebScrolling();
+    }
+  }, []);
 
   // Platform detection to determine which dashboard to show
   const isWeb = Platform.OS === 'web';

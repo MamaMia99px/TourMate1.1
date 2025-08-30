@@ -8,11 +8,14 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../utils/theme';
 import AdminDataService from '../../services/admin/AdminDataService';
+import { directLogout } from '../../utils/logoutUtils';
 
 const ManageContentScreen = ({ navigation }) => {
   const { isDarkMode } = useTheme();
@@ -120,18 +123,29 @@ const ManageContentScreen = ({ navigation }) => {
       padding: 20,
       paddingTop: 40,
       backgroundColor: colors.primary,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    backButton: {
+      marginRight: 15,
+      padding: 5,
+    },
+    logoutButton: {
+      marginLeft: 15,
+      padding: 5,
     },
     headerTitle: {
       fontSize: 24,
       fontWeight: 'bold',
       color: '#FFFFFF',
-      marginBottom: 15,
+      flex: 1,
     },
     categoriesContainer: {
       flexDirection: 'row',
       paddingHorizontal: 20,
       paddingVertical: 15,
       backgroundColor: colors.cardBackground,
+      minWidth: '100%',
     },
     categoryButton: {
       flex: 1,
@@ -185,6 +199,7 @@ const ManageContentScreen = ({ navigation }) => {
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
+      minWidth: '100%',
     },
     itemHeader: {
       flexDirection: 'row',
@@ -218,6 +233,7 @@ const ManageContentScreen = ({ navigation }) => {
       paddingTop: 10,
       borderTopWidth: 1,
       borderTopColor: colors.border || '#E0E0E0',
+      minWidth: '100%',
     },
     itemDate: {
       fontSize: 12,
@@ -233,10 +249,10 @@ const ManageContentScreen = ({ navigation }) => {
       marginLeft: 10,
     },
     editButton: {
-      backgroundColor: colors.primary,
+      backgroundColor: colors.accent,
     },
     deleteButton: {
-      backgroundColor: '#FF6B6B',
+      backgroundColor: colors.error,
     },
     actionButtonText: {
       color: '#FFFFFF',
@@ -267,16 +283,37 @@ const ManageContentScreen = ({ navigation }) => {
     scrollViewContent: {
       flexGrow: 1,
       paddingBottom: 20,
+      minWidth: '100%',
+      ...(Platform.OS === 'web' && {
+        minHeight: '100%',
+      }),
     },
     scrollView: {
       flex: 1,
+      ...(Platform.OS === 'web' && {
+        overflow: 'auto',
+        height: '100vh',
+        maxHeight: '100vh',
+      }),
     }
   });
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Manage Content</Text>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => directLogout(navigation)}
+        >
+          <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.categoriesContainer}>
@@ -328,13 +365,17 @@ const ManageContentScreen = ({ navigation }) => {
       ) : (
         <ScrollView 
           style={styles.scrollView} 
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          showsHorizontalScrollIndicator={true}
           contentContainerStyle={styles.scrollViewContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           bounces={true}
           alwaysBounceVertical={false}
+          nestedScrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          testID="scroll-view"
         >
           {filteredContent.map((item) => (
             <View key={item.id} style={styles.contentItem}>

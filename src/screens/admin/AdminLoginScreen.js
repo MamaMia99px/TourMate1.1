@@ -61,10 +61,12 @@ const AdminLoginScreen = ({ navigation }) => {
       flexGrow: 1,
       justifyContent: 'center',
       minHeight: height,
+      minWidth: '100%',
     },
     content: {
       paddingHorizontal: 32,
       paddingVertical: 40,
+      minWidth: '100%',
     },
     headerSection: {
       alignItems: 'center',
@@ -145,7 +147,8 @@ const AdminLoginScreen = ({ navigation }) => {
       alignItems: 'center',
       marginTop: 8,
       marginBottom: 24,
-      shadowColor: colors.primary,
+      backgroundColor: colors.accent,
+      shadowColor: colors.accent,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 12,
@@ -165,7 +168,7 @@ const AdminLoginScreen = ({ navigation }) => {
       paddingVertical: 16,
     },
     backButtonText: {
-      color: colors.primary,
+      color: colors.accent,
       fontSize: 15,
       fontWeight: '500',
       letterSpacing: 0.3,
@@ -176,7 +179,7 @@ const AdminLoginScreen = ({ navigation }) => {
       borderRadius: 16,
       marginBottom: 32,
       borderLeftWidth: 4,
-      borderLeftColor: colors.primary,
+      borderLeftColor: colors.accent,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.08,
@@ -186,7 +189,7 @@ const AdminLoginScreen = ({ navigation }) => {
     infoTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: colors.primary,
+      color: colors.accent,
       marginBottom: 8,
       letterSpacing: 0.3,
     },
@@ -210,8 +213,12 @@ const AdminLoginScreen = ({ navigation }) => {
     >
       <ScrollView 
         contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
+        bounces={true}
+        alwaysBounceVertical={false}
+        nestedScrollEnabled={true}
       >
         <View style={styles.content}>
           {/* Header Section */}
@@ -288,13 +295,15 @@ const AdminLoginScreen = ({ navigation }) => {
 
           <View style={styles.divider} />
 
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>Back to Application</Text>
-          </TouchableOpacity>
+          {/* Back Button - Only show on mobile platforms */}
+          {Platform.OS !== 'web' && (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backButtonText}>Back to Application</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
